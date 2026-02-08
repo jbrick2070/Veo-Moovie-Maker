@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Character, Shot, Project } from '../types';
-import { Film, Plus, Wand2, Eraser, MoveDown, MoveUp, Layers, Lock, Unlock, Eye, Video, User, Aperture, ChevronRight, ChevronDown, MessageSquareQuote, MapPin, Globe, Sparkles, Link, Save, XCircle, RotateCcw } from 'lucide-react';
+import { GoogleGenAI } from "@google/genai";
+import { Film, Plus, Wand2, Eraser, MoveDown, MoveUp, Layers, Lock, Unlock, Eye, Video, User, Aperture, ChevronRight, ChevronDown, MessageSquareQuote, MapPin, Globe, Sparkles, Link, Save, XCircle, RotateCcw, Loader2, Sparkle } from 'lucide-react';
 
 interface ShotGeneratorProps {
   project: Project;
@@ -174,6 +175,7 @@ export const ShotGenerator: React.FC<ShotGeneratorProps> = ({ project, globalCha
   const [isEnvPresetsOpen, setIsEnvPresetsOpen] = useState(false);
   const [envCategory, setEnvCategory] = useState<'real' | 'fiction'>('real');
   const [isContinuation, setIsContinuation] = useState(false);
+  const [isAIRewriting, setIsAIRewriting] = useState(false);
 
   // Edit Mode State
   const [editingShotId, setEditingShotId] = useState<string | null>(null);
@@ -204,6 +206,60 @@ export const ShotGenerator: React.FC<ShotGeneratorProps> = ({ project, globalCha
     // Safety check: Disable if text exists
     if (actionInput.length > 0) return; 
     setActionInput(SAMPLE_SCENE_ACTION);
+  };
+
+  // --- AI REWRITE LOGIC ---
+
+  const handleAIRewrite = async (mode: 'realistic' | 'fantastical') => {
+    if (!process.env.API_KEY) {
+      alert("API Key is missing.");
+      return;
+    }
+
+    setIsAIRewriting(true);
+
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      
+      // Determine existing characters
+      const existingTags = globalCharacters
+        .filter(c => actionInput.includes(`[${c.name}]`))
+        .map(c => `[${c.name}]`);
+      
+      const castNames = globalCharacters.map(c => `[${c.name}]`).join(', ');
+
+      const prompt = `You are an AI Film Director and Screenwriter. 
+      Rewrite the following raw scene description into a high-fidelity, cinematic sequence.
+
+      ### STYLE MODE: ${mode.toUpperCase()}
+      ### USER INPUT: "${actionInput || "A character standing in the environment."}"
+      
+      ### CHARACTER CONSTRAINTS:
+      - Cast List: ${castNames}
+      - Detected in Input: ${existingTags.length > 0 ? existingTags.join(', ') : "None"}
+      - RULE 1: If characters were detected in the input, you MUST keep them and ONLY them. Do not add new characters.
+      - RULE 2: If NO characters were detected, feel free to "cast" from the Cast List as needed to make the scene interesting.
+      - RULE 3: Always use the [Name] format for characters.
+      - RULE 4: Preserve any dialogue found in quotation marks, but you can refine the delivery.
+
+      ### OUTPUT:
+      Return ONLY the rewritten text. Focus on visual verbs, emotional weight, and sensory details. Keep it to one or two paragraphs.`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: prompt
+      });
+
+      if (response.text) {
+        setActionInput(response.text.trim());
+      }
+
+    } catch (err) {
+      console.error("AI Rewrite failed", err);
+      alert("AI Rewrite failed. Check console for details.");
+    } finally {
+      setIsAIRewriting(false);
+    }
   };
 
   // --- Continuity Logic ---
@@ -430,19 +486,45 @@ export const ShotGenerator: React.FC<ShotGeneratorProps> = ({ project, globalCha
           <div className="space-y-2">
              <div className="flex justify-between items-center">
                <label className="text-xs uppercase tracking-wider text-[#8C7A70] font-bold">2. Action, Subjects & Dialogue</label>
-               <button 
-                  onClick={loadSampleScene}
-                  disabled={actionInput.length > 0}
-                  className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded transition-colors border border-transparent 
-                    ${actionInput.length > 0 
-                      ? 'text-[#5D4E45] cursor-not-allowed opacity-50' 
-                      : 'text-[#C6934B] hover:bg-[#2A1F1B] hover:border-[#3E2F28] cursor-pointer'}`
-                  }
-                  title={actionInput.length > 0 ? "Clear action field to load sample" : "Load a complex sample scene with dialogue"}
-                >
-                  <MessageSquareQuote size={12} />
-                  Load Sample Scene
-                </button>
+               
+               <div className="flex gap-2">
+                 {/* AI Rewrite Dropdown/Buttons */}
+                 <div className="flex bg-[#15100E] border border-[#3E2F28] rounded-lg p-0.5 overflow-hidden">
+                    <button 
+                      onClick={() => handleAIRewrite('realistic')}
+                      disabled={isAIRewriting}
+                      className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded hover:bg-[#2A1F1B] text-[#C6934B] transition-colors disabled:opacity-50"
+                      title="AI Rewrite: Realistic Style"
+                    >
+                      {isAIRewriting ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                      Realistic
+                    </button>
+                    <div className="w-px bg-[#3E2F28] h-full"></div>
+                    <button 
+                      onClick={() => handleAIRewrite('fantastical')}
+                      disabled={isAIRewriting}
+                      className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded hover:bg-[#2A1F1B] text-[#C6934B] transition-colors disabled:opacity-50"
+                      title="AI Rewrite: Fantastical Style"
+                    >
+                      {isAIRewriting ? <Loader2 size={12} className="animate-spin" /> : <Sparkle size={12} />}
+                      Fantastical
+                    </button>
+                 </div>
+
+                 <button 
+                    onClick={loadSampleScene}
+                    disabled={actionInput.length > 0}
+                    className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded transition-colors border border-transparent 
+                      ${actionInput.length > 0 
+                        ? 'text-[#5D4E45] cursor-not-allowed opacity-50' 
+                        : 'text-[#C6934B] hover:bg-[#2A1F1B] hover:border-[#3E2F28] cursor-pointer'}`
+                    }
+                    title={actionInput.length > 0 ? "Clear action field to load sample" : "Load a complex sample scene with dialogue"}
+                  >
+                    <MessageSquareQuote size={12} />
+                    Sample
+                  </button>
+               </div>
              </div>
              
              {/* Character Palette */}
@@ -463,12 +545,22 @@ export const ShotGenerator: React.FC<ShotGeneratorProps> = ({ project, globalCha
                  ))}
              </div>
 
-            <textarea
-              value={actionInput}
-              onChange={(e) => setActionInput(e.target.value)}
-              placeholder='e.g. [Detective K] walks slowly towards the camera. He says "Wait!", looking over his shoulder...'
-              className="w-full h-32 bg-[#0A0806]/60 border border-[#3E2F28] text-[#FDF0C9] px-4 py-3 rounded-xl focus:ring-2 focus:ring-[#C6934B] outline-none leading-relaxed resize-none"
-            />
+            <div className="relative">
+              <textarea
+                value={actionInput}
+                onChange={(e) => setActionInput(e.target.value)}
+                placeholder='e.g. [Detective K] walks slowly towards the camera. He says "Wait!", looking over his shoulder...'
+                className={`w-full h-32 bg-[#0A0806]/60 border border-[#3E2F28] text-[#FDF0C9] px-4 py-3 rounded-xl focus:ring-2 focus:ring-[#C6934B] outline-none leading-relaxed resize-none transition-opacity ${isAIRewriting ? 'opacity-50' : 'opacity-100'}`}
+              />
+              {isAIRewriting && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-[#15100E] px-4 py-2 rounded-full border border-[#C6934B] flex items-center gap-2 shadow-2xl">
+                    <Loader2 size={16} className="text-[#C6934B] animate-spin" />
+                    <span className="text-xs font-bold text-[#C6934B] uppercase tracking-widest">Director is thinking...</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* 3. CAMERA FIELD */}
