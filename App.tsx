@@ -7,7 +7,7 @@ import { ExportView } from './components/ExportView';
 import { ProjectLibrary } from './components/ProjectLibrary';
 import { CinematicBackground } from './components/CinematicBackground';
 import { ErrorModal } from './components/ErrorModal';
-import { ArrowLeft, Users, Clapperboard, Film, LayoutGrid, Key, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Users, Clapperboard, Film, LayoutGrid, Key, ChevronRight, Loader2, Cpu, Github } from 'lucide-react';
 
 export const SAMPLE_PROJECT_ID = 'proj-sample-mimelung-final-v3';
 
@@ -17,37 +17,107 @@ declare global {
     openSelectKey: () => Promise<void>;
   }
   interface Window {
-    // Fixed: Making this optional to avoid "identical modifiers" clashing with potential pre-existing global declarations.
     aistudio?: AIStudio;
   }
 }
 
-const jeffreyDesc = "Jeffrey is 52 years old, 5'7\", about 192 pounds, with a chubby, stocky build. He is clean-shaven with short to medium-length hair that is slightly unkempt. His face is round with gentle features. He wears comfortable, loose-fitting casual clothing and favors pinks, soft pastels, muted reds, and light blues. His overall appearance is approachable, peaceful, and slightly disheveled.";
-const magnoliaRexDesc = "MagnoliaRex is an ageless adult woman with a tall, slim, elegant build. She has symmetrical facial features with high cheekbones and a defined jawline. Her hair is long, dark, and voluminous with subtle asymmetry and faint star-like speckling. She wears eclectic, pop-inspired clothing with layered textures and bold colors such as violet, black, metallic gold, and electric accents. Her appearance is confident, iconic, and composed.";
+const jeffreyDesc = "[Jeffrey] is 52 years old, 5'7\", about 192 pounds, with a chubby, stocky build. He is clean-shaven with short to medium-length hair that is slightly unkempt. His face is round with gentle features. He wears comfortable, loose-fitting casual clothing and favors pinks, soft pastels, muted reds, and light blues. His overall appearance is approachable, peaceful, and slightly disheveled.";
+const magnoliaRexDesc = "[MagnoliaRex] is an ageless adult woman with a tall, slim, elegant build. She has symmetrical facial features with high cheekbones and a defined jawline. Her hair is long, dark, and voluminous with subtle asymmetry and faint star-like speckling. She wears eclectic, pop-inspired clothing with layered textures and bold colors such as violet, black, metallic gold, and electric accents. Her appearance is confident, iconic, and composed.";
+const catDesc = "[Cat] is an Egyptian-type adult with a slender, long-limbed build. Its fur is very short, smooth, and dark gray to charcoal. It has a wedge-shaped head, large almond-shaped eyes, and large upright ears. Its tail is long and tapered. The cat’s appearance is elegant, alert, and intelligent.";
+
+const commonVibe = "1970s thriller aesthetic, Panavision C-series, natural lighting, pushed film stock, visible grain, desaturated greens, moody atmosphere, anamorphic lens flares";
+
+const createSampleShot = (id: string, order: number, env: string, action: string, camera: string, chars: string[]): Shot => ({
+  id,
+  sequenceOrder: order,
+  environment: env,
+  action: action,
+  camera: camera,
+  actionPrompt: `${camera}. ${env}. ${action}`,
+  model: 'veo-3.1-generate-preview',
+  aspectRatio: '16:9',
+  resolution: '1080p',
+  isContinuation: order > 1,
+  charactersInvolved: chars
+});
 
 const SAMPLE_PROJECT: Project = {
   id: SAMPLE_PROJECT_ID,
-  title: 'MIME LUNG MUSIC FESTIVAL',
-  cinematicVibe: '1970s thriller aesthetic, Panavision C-series, natural lighting, pushed film stock, visible grain, desaturated greens, moody atmosphere, anamorphic lens flares',
+  title: 'VALENTINE’S DAY: MIME LUNG',
+  cinematicVibe: commonVibe,
   lastModified: Date.now(),
   characters: [
     { id: 'char-jeffrey', name: 'Jeffrey', description: jeffreyDesc, color: 'bg-blue-400' },
-    { id: 'char-magnoliarex', name: 'MagnoliaRex', description: magnoliaRexDesc, color: 'bg-purple-600' }
+    { id: 'char-magnoliarex', name: 'MagnoliaRex', description: magnoliaRexDesc, color: 'bg-purple-600' },
+    { id: 'char-cat', name: 'Cat', description: catDesc, color: 'bg-slate-700' }
   ],
   shots: [
-    {
-      id: 'shot-1',
-      sequenceOrder: 1,
-      environment: 'Empty London street at night, wet pavement reflecting streetlights.',
-      action: '[Jeffrey] walks beside [MagnoliaRex]. She smiles and points toward the glowing lung stage.',
-      camera: 'Medium two-shot, 1970s thriller aesthetic, natural street lighting.',
-      actionPrompt: `Medium two-shot, Panavision C-Series anamorphic. (SUBJECT: Jeffrey -- ${jeffreyDesc}) walks beside (SUBJECT: MagnoliaRex -- ${magnoliaRexDesc})...`,
-      model: 'veo-3.1-generate-preview',
-      aspectRatio: '16:9',
-      resolution: '1080p',
-      isContinuation: false,
-      charactersInvolved: ['char-jeffrey', 'char-magnoliarex']
-    }
+    createSampleShot('s1', 1, 
+      "Empty London street at night, wet pavement reflecting streetlights, early February winter atmosphere.",
+      "[Jeffrey] walks beside [MagnoliaRex]. She smiles.\n[MagnoliaRex]: “Jeffrey, I have a surprise for you.”\nShe pauses.\n[MagnoliaRex]: “It’s almost Valentine’s Day, and I want us to have a marvelous adventure.”\nShe fades from view.",
+      "Medium two-shot, Panavision C-Series anamorphic, 40mm, 1970s thriller aesthetic, natural sodium-vapor street lighting, pushed film stock, visible grain, desaturated greens, moody atmosphere.",
+      ['char-jeffrey', 'char-magnoliarex']
+    ),
+    createSampleShot('s2', 2,
+      "Same London street, now empty and silent.",
+      "[Jeffrey] stands alone, checks his watch.\n[Jeffrey]: “February 1.”\nHe looks down the street.\n[Jeffrey]: “I’ll find you.”",
+      "Static wide-to-medium shot, Panavision C-Series, 50mm, locked-off frame, practical street lighting only, heavy grain, muted color palette, low contrast blacks.",
+      ['char-jeffrey']
+    ),
+    createSampleShot('s3', 3,
+      "Heathrow Airport terminal interior, sleek futuristic design, autonomous systems and travelers in motion.",
+      "[Jeffrey] moves quickly through the terminal, scanning departure boards, focused and determined.",
+      "Tracking shot from behind, Panavision C-Series, 35mm anamorphic, natural terminal lighting, pushed stock, visible grain, restrained handheld movement.",
+      ['char-jeffrey']
+    ),
+    createSampleShot('s4', 4,
+      "Interior of hypersonic spacecraft approaching the International Space Station, Earth visible below.",
+      "[Jeffrey] floats near the window, scanning data.\n[Jeffrey]: “Somewhere from your past… my past… our past?”",
+      "Wide interior shot, Panavision C-Series, 35mm, cool practical lighting from panels and Earth glow, halation on highlights, subtle camera drift.",
+      ['char-jeffrey']
+    ),
+    createSampleShot('s5', 5,
+      "Exterior view of Earth from orbit, city lights forming steady patterns.",
+      "[Jeffrey] notices a concentrated glow over Paris.\n[Jeffrey]: “Paris.”",
+      "Extreme wide, Panavision C-Series, 75mm, static composition, pushed film grain, desaturated blues, slow optical zoom.",
+      ['char-jeffrey']
+    ),
+    createSampleShot('s6', 6,
+      "Paris streets under constant rain, cleaning robots scrubbing buildings and monuments.",
+      "[Jeffrey] sits exhausted. A robot drops a postcard.\n[Jeffrey]: “Egypt?”\nHe studies the pyramid image.\n[Jeffrey]: “Of course.”",
+      "Medium shot, Panavision C-Series, 65mm, rain on lens, natural overcast lighting, grain emphasized, handheld micro-movement.",
+      ['char-jeffrey']
+    ),
+    createSampleShot('s7', 7,
+      "Cairo at dusk, pyramids in the distance, amber sky fading to violet, cats filling streets and stone paths.",
+      "[Jeffrey] walks among the cats. One larger [Cat] steps forward.\n[Cat]: “You’re looking for her.”\n[Jeffrey]: “Valentine’s Day is coming. I need to find MagnoliaRex.”\n[Cat]: “She is missed here.”\nThe cat turns away, then pauses.\n[Cat]: “I don’t care much for them birdies… but the penguins may have an answer.”",
+      "Wide shot, Panavision C-Series, 40mm anamorphic, golden-hour natural light, pushed stock, warm highlights, soft contrast, subtle vignetting.",
+      ['char-jeffrey', 'char-cat']
+    ),
+    createSampleShot('s8', 8,
+      "Antarctic ice fields under a pale sky, unexpectedly temperate air, distant penguin silhouettes.",
+      "[Jeffrey] walks forward, breath visible.\n[Jeffrey]: “Antarctica.”",
+      "Wide shot, Panavision C-Series, 50mm, flat polar lighting, bleached highlights, grain visible in whites, austere framing.",
+      ['char-jeffrey']
+    ),
+    createSampleShot('s9', 9,
+      "South Pole marker area, wind moving across snow, a lone sign reading “Trafalgar.”",
+      "[Jeffrey] reads the sign.\n[Jeffrey]: “London.”\nHe exhales.\n[Jeffrey]: “Love isn’t about distance.”",
+      "Static extreme wide, Panavision C-Series, 75mm, minimal movement, heavy grain, desaturated palette.",
+      ['char-jeffrey']
+    ),
+    createSampleShot('s10', 10,
+      "Trafalgar Square at night, red neon heart lights, glowing writing booth.",
+      "[Jeffrey] writes intensely.\n[Jeffrey]: “Every day with you matters.”\nA gust of wind pulls the page away.\n[Jeffrey]: “I should’ve stayed.”",
+      "Medium close-up, Panavision C-Series, 50mm, neon practical lighting only, strong halation, deep shadows, saturated reds bleeding into grain.",
+      ['char-jeffrey']
+    ),
+    createSampleShot('s11', 11,
+      "Zurich Sechseläutenplatz on Valentine’s Day, lasers, video screens, massive stage, crowd gathered.",
+      "[MagnoliaRex] appears on stage and locks eyes with [Jeffrey].\n[MagnoliaRex]: “Happy Valentine’s Day, Jeffrey.”\nShe blows him a kiss. The crowd rematerializes and dances.",
+      "Wide celebratory shot, Panavision C-Series, 40mm anamorphic, mixed practical and stage lighting, pushed film stock, pronounced grain, slow crane upward.",
+      ['char-jeffrey', 'char-magnoliarex']
+    )
   ]
 };
 
@@ -76,7 +146,10 @@ export const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>(() => {
     try {
       const saved = localStorage.getItem('veo_mooovie_projects');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.map((p: Project) => p.id === SAMPLE_PROJECT_ID ? SAMPLE_PROJECT : p);
+      }
       return [SAMPLE_PROJECT];
     } catch (e) {
       return [SAMPLE_PROJECT];
@@ -84,18 +157,17 @@ export const App: React.FC = () => {
   });
   
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'characters' | 'shots' | 'export'>('shots');
+  const [activeTab, setActiveTab] = useState<'characters' | 'shots' | 'export'>('characters');
   const [globalError, setGlobalError] = useState<{title: string, message: string, retryKey?: boolean} | null>(null);
+  const [isStudioBusy, setIsStudioBusy] = useState(false);
 
   useEffect(() => {
     const checkKey = async () => {
-      // Added safety check for aistudio existence
       if (window.aistudio) {
         try {
           const selected = await window.aistudio.hasSelectedApiKey();
           setHasKey(selected);
         } catch (err) {
-          console.error("Failed to check key status:", err);
           setHasKey(false);
         }
       } else {
@@ -105,8 +177,19 @@ export const App: React.FC = () => {
     checkKey();
   }, []);
 
+  // TIERED STORAGE FIX: Strip large binaries before saving to localStorage (disk).
+  // This prevents the 5MB browser quota from crashing the app (the "Dark Screen" bug).
   useEffect(() => {
-    localStorage.setItem('veo_mooovie_projects', JSON.stringify(projects));
+    try {
+      const projectsToPersist = projects.map(p => ({
+        ...p,
+        characters: p.characters.map(({ visualAnchor, ...c }) => c),
+        shots: p.shots.map(({ startingFrame, endingFrame, ...s }) => s)
+      }));
+      localStorage.setItem('veo_mooovie_projects', JSON.stringify(projectsToPersist));
+    } catch (e) {
+      console.warn("Storage quota hit. Memory-Tiered mode active.");
+    }
   }, [projects]);
 
   const activeProject = useMemo(() => 
@@ -116,36 +199,43 @@ export const App: React.FC = () => {
   
   const isProjectOpen = !!activeProjectId && !!activeProject;
 
+  const handleSelectProject = useCallback((id: string) => {
+    setActiveProjectId(id);
+    setActiveTab('characters');
+  }, []);
+
   const handleCreateProject = useCallback((title: string) => {
     const newProject: Project = {
       id: crypto.randomUUID(),
       title: title || "Untitled Production",
-      cinematicVibe: "Cinematic realism, high-fidelity film stock",
+      cinematicVibe: commonVibe,
       shots: [],
       characters: [],
       lastModified: Date.now()
     };
     setProjects(prev => [...prev, newProject]);
-    setActiveProjectId(newProject.id);
-    setActiveTab('characters');
-  }, []);
+    handleSelectProject(newProject.id);
+  }, [handleSelectProject]);
 
-  const handleUpdateActiveProject = (updated: Project) => {
-    setProjects(prev => prev.map(p => p.id === updated.id ? updated : p));
-  };
+  const handleUpdateActiveProject = useCallback((updater: Project | ((prev: Project) => Project)) => {
+    setProjects(prev => prev.map(p => {
+      if (p.id === activeProjectId) {
+        const updated = typeof updater === 'function' ? (updater as (prev: Project) => Project)(p) : updater;
+        return { ...updated, lastModified: Date.now() };
+      }
+      return p;
+    }));
+  }, [activeProjectId]);
 
   const handleKeySelection = async () => {
     if (window.aistudio) {
       try {
         await window.aistudio.openSelectKey();
         setHasKey(true);
-      } catch (err) {
-        console.error("Key selection failed:", err);
-      }
+      } catch (err) {}
     }
   };
 
-  // Helper to process API errors according to guidelines
   const handleApiError = useCallback((err: any, contextTitle: string) => {
     const errorMessage = err.message || String(err);
     if (errorMessage.includes("Requested entity was not found.")) {
@@ -178,7 +268,12 @@ export const App: React.FC = () => {
     <div className="min-h-screen flex flex-col md:flex-row text-[#FDF0C9] relative overflow-hidden font-inter select-none">
       <CinematicBackground />
       {globalError && (
-        <ErrorModal title={globalError.title} message={globalError.message} onClose={() => setGlobalError(null)} onRetryKey={globalError.retryKey ? handleKeySelection : undefined} />
+        <ErrorModal 
+          title={globalError.title} 
+          message={globalError.message} 
+          onClose={() => setGlobalError(null)} 
+          onRetryKey={globalError.retryKey ? handleKeySelection : undefined} 
+        />
       )}
       
       <nav className="w-full md:w-20 lg:w-64 bg-[#100C0A]/90 backdrop-blur-xl border-r border-[#3E2F28]/30 flex flex-col z-50">
@@ -197,6 +292,30 @@ export const App: React.FC = () => {
               <NavButton active={activeTab === 'shots'} onClick={() => setActiveTab('shots')} icon={<Clapperboard size={22} />} label="Studio" />
               <NavButton active={activeTab === 'export'} onClick={() => setActiveTab('export')} icon={<Film size={22} />} label="Export" />
             </>
+          )}
+        </div>
+        
+        <div className="p-4 border-t border-[#3E2F28]/30 bg-white/5 space-y-4">
+          <a 
+            href="https://github.com/jbrick2070/Veo-Moovie-Maker" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="flex items-center gap-3 text-[#8C7A70] hover:text-[#C6934B] transition-colors group px-1"
+          >
+            <Github size={18} />
+            <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block">Open Source</span>
+          </a>
+
+          {isStudioBusy ? (
+            <div className="flex items-center gap-3 animate-pulse">
+              <Loader2 className="animate-spin text-[#C6934B]" size={16} />
+              <span className="text-[9px] font-black uppercase text-[#C6934B] tracking-widest">Processing...</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 opacity-40">
+              <Cpu size={16} className="text-[#8C7A70]" />
+              <span className="text-[9px] font-black uppercase text-[#8C7A70] tracking-widest">Memory Stable</span>
+            </div>
           )}
         </div>
       </nav>
@@ -219,20 +338,40 @@ export const App: React.FC = () => {
             <ProjectLibrary 
               projects={projects} 
               onCreateProject={handleCreateProject} 
-              onSelectProject={setActiveProjectId} 
+              onSelectProject={handleSelectProject} 
               onDeleteProject={(id) => setProjects(prev => prev.filter(p => p.id !== id))} 
               onAddSample={() => setProjects(prev => [SAMPLE_PROJECT, ...prev.filter(p => p.id !== SAMPLE_PROJECT_ID)])} 
-              onApiError={(err) => handleApiError(err, "Project Library Error")}
+              onApiError={(err) => handleApiError(err, "Library Error")}
               setProjects={setProjects}
             />
           ) : (
             <div className="p-8 max-w-7xl mx-auto">
-              {activeTab === 'characters' && <CharacterManager characters={activeProject.characters} setCharacters={(updater) => {
-                const newChars = typeof updater === 'function' ? (updater as any)(activeProject.characters) : updater;
-                handleUpdateActiveProject({...activeProject, characters: newChars});
-              }} onApiError={(err) => handleApiError(err, "Character Manager Error")} />}
-              {activeTab === 'shots' && <ShotGenerator project={activeProject} globalCharacters={activeProject.characters} onUpdateProject={handleUpdateActiveProject} onNavigateToExport={() => setActiveTab('export')} onApiError={(err) => handleApiError(err, "Shot Generator Error")} />}
-              {activeTab === 'export' && <ExportView project={activeProject} globalCharacters={activeProject.characters} onApiError={(err) => handleApiError(err, "Export Studio Error")} />}
+              {activeTab === 'characters' && (
+                <CharacterManager 
+                  characters={activeProject.characters} 
+                  isStudioBusy={isStudioBusy}
+                  setIsStudioBusy={setIsStudioBusy}
+                  setCharacters={(charUpdater) => {
+                    handleUpdateActiveProject(prev => ({
+                      ...prev,
+                      characters: typeof charUpdater === 'function' ? charUpdater(prev.characters) : charUpdater
+                    }));
+                  }} 
+                  onApiError={(err) => handleApiError(err, "Cast Error")} 
+                />
+              )}
+              {activeTab === 'shots' && (
+                <ShotGenerator 
+                  project={activeProject} 
+                  isStudioBusy={isStudioBusy}
+                  setIsStudioBusy={setIsStudioBusy}
+                  globalCharacters={activeProject.characters} 
+                  onUpdateProject={handleUpdateActiveProject} 
+                  onNavigateToExport={() => setActiveTab('export')} 
+                  onApiError={(err) => handleApiError(err, "Studio Error")} 
+                />
+              )}
+              {activeTab === 'export' && <ExportView project={activeProject} globalCharacters={activeProject.characters} onApiError={(err) => handleApiError(err, "Export Error")} />}
             </div>
           )}
         </div>

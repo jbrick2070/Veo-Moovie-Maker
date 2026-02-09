@@ -1,9 +1,11 @@
+
 export interface Character {
   id: string;
   name: string;
   description: string;
   styleAnchor?: string; 
   color: string;
+  visualAnchor?: string; // Base64 reference image
 }
 
 export type AspectRatio = '16:9' | '9:16' | '1:1' | '4:3' | '3:4' | '21:9';
@@ -25,6 +27,8 @@ export interface Shot {
   duration?: number; 
   isContinuation: boolean; 
   referenceImageNotes?: string;
+  startingFrame?: string; // Base64 generated image
+  endingFrame?: string;   // Base64 generated image for motion anchoring
 }
 
 export interface Project {
@@ -32,7 +36,7 @@ export interface Project {
   title: string;
   cinematicVibe: string;
   shots: Shot[];
-  characters: Character[]; // Each project now owns its cast
+  characters: Character[]; 
   lastModified: number;
 }
 

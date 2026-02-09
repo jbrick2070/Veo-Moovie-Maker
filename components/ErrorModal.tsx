@@ -1,15 +1,16 @@
 
 import React from 'react';
-import { AlertTriangle, X, ShieldAlert, CreditCard, LifeBuoy, Key } from 'lucide-react';
+import { AlertTriangle, X, ShieldAlert, CreditCard, LifeBuoy, Key, Trash2 } from 'lucide-react';
 
 interface ErrorModalProps {
   title: string;
   message: string;
   onClose: () => void;
   onRetryKey?: () => void;
+  onClearCache?: () => void;
 }
 
-export const ErrorModal: React.FC<ErrorModalProps> = ({ title, message, onClose, onRetryKey }) => {
+export const ErrorModal: React.FC<ErrorModalProps> = ({ title, message, onClose, onRetryKey, onClearCache }) => {
   return (
     <div className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in duration-300">
       <div className="bg-[#15100E] border-2 border-[#8A1C1C]/50 w-full max-w-lg p-10 rounded-[3rem] relative shadow-[0_0_50px_rgba(138,28,28,0.2)]">
@@ -30,6 +31,11 @@ export const ErrorModal: React.FC<ErrorModalProps> = ({ title, message, onClose,
           {onRetryKey && (
             <button onClick={onRetryKey} className="w-full bg-[#C6934B] text-[#15100E] py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-[#FDF0C9] transition-all">
               <Key size={18} /> Update Studio Key
+            </button>
+          )}
+          {onClearCache && (
+            <button onClick={onClearCache} className="w-full bg-red-600/10 text-red-500 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-600/20 border border-red-500/30 flex items-center justify-center gap-3 transition-all">
+              <Trash2 size={18} /> Wipe Studio Cache
             </button>
           )}
           <button onClick={() => window.open('https://ai.google.dev/gemini-api/docs/billing', '_blank')} className="w-full bg-white/5 text-[#8C7A70] py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 border border-white/10 flex items-center justify-center gap-3">
