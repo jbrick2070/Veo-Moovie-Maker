@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
-import { Character, Shot, Project } from '../types';
+import React, { useState, useMemo } from 'react';
+import { Character, Shot, Project, Language, translations } from '../types';
 import { GoogleGenAI } from "@google/genai";
 import { Film, Wand2, Trash2, MoveDown, MoveUp, Aperture, MapPin, Sparkles, Loader2, CheckCircle2, Camera, RefreshCw, Clapperboard, Zap, Globe, BookOpen, Edit2, MessageSquare, History, FlaskConical, ChevronRight, AlertCircle } from 'lucide-react';
 
 interface ShotGeneratorProps {
+  language: Language;
   project: Project;
   globalCharacters: Character[];
   isStudioBusy: boolean;
@@ -34,7 +35,7 @@ const LENS_PACKS = {
   ]
 };
 
-export const ShotGenerator: React.FC<ShotGeneratorProps> = ({ project, globalCharacters, isStudioBusy, setIsStudioBusy, onUpdateProject, onNavigateToExport, onApiError }) => {
+export const ShotGenerator: React.FC<ShotGeneratorProps> = ({ language, project, globalCharacters, isStudioBusy, setIsStudioBusy, onUpdateProject, onNavigateToExport, onApiError }) => {
   const [envInput, setEnvInput] = useState('');
   const [actionInput, setActionInput] = useState('');
   const [cameraInput, setCameraInput] = useState('');
@@ -46,6 +47,8 @@ export const ShotGenerator: React.FC<ShotGeneratorProps> = ({ project, globalCha
   const [isSynthesizingText, setIsSynthesizingText] = useState<'env' | 'action' | null>(null);
   const [editingShotId, setEditingShotId] = useState<string | null>(null);
   const [activeLensPack, setActiveLensPack] = useState<'regular' | 'experimental'>('regular');
+
+  const t = useMemo(() => translations[language], [language]);
 
   const handleSynthesizeText = async (field: 'env' | 'action', mode: 'realistic' | 'fictional') => {
     setIsSynthesizingText(field);
@@ -165,7 +168,6 @@ export const ShotGenerator: React.FC<ShotGeneratorProps> = ({ project, globalCha
     const currentShots = [...project.shots];
 
     for (const shot of currentShots) {
-      // Check if we already have this frame if not re-batching? (optional)
       setActiveGeneratingShotId(shot.id);
       setActiveGeneratingType(type);
 
@@ -247,7 +249,7 @@ export const ShotGenerator: React.FC<ShotGeneratorProps> = ({ project, globalCha
           <div className="flex items-center justify-between border-b border-[#3E2F28] pb-6 relative z-10">
             <div className="flex items-center gap-4 text-[#C6934B]">
               <Wand2 size={32} />
-              <h2 className="text-3xl font-black text-[#FDF0C9] italic uppercase tracking-tighter">Shot Architect</h2>
+              <h2 className="text-3xl font-black text-[#FDF0C9] italic uppercase tracking-tighter">{t.shot_architect}</h2>
             </div>
           </div>
           
@@ -276,7 +278,7 @@ export const ShotGenerator: React.FC<ShotGeneratorProps> = ({ project, globalCha
           <div className="space-y-4 relative z-10">
             <div className="flex justify-between items-center px-1">
               <label className="text-[10px] font-black uppercase text-[#8C7A70] tracking-[0.4em] flex items-center gap-2">
-                <MessageSquare size={12} className="text-[#C6934B]" /> II. Action / Cast & Dialogue
+                <MessageSquare size={12} className="text-[#C6934B]" /> II. Action / {t.cast} & Dialogue
               </label>
               <div className="flex gap-2">
                 <button onClick={() => handleSynthesizeText('action', 'realistic')} className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black uppercase text-[#8C7A70] hover:text-[#C6934B] hover:border-[#C6934B]/30 flex items-center gap-1.5 transition-all">
@@ -321,7 +323,7 @@ export const ShotGenerator: React.FC<ShotGeneratorProps> = ({ project, globalCha
                 <button key={i} onClick={() => setCameraInput(lens.dna)} className="flex-shrink-0 w-44 snap-start group flex flex-col items-start p-5 bg-[#15100E] border border-[#3E2F28] rounded-[2rem] hover:border-[#C6934B] transition-all text-left">
                   <span className="text-[10px] font-black uppercase text-[#C6934B] leading-tight mb-2 flex items-center justify-between w-full">
                     {lens.label}
-                    <ChevronRight size={10} className="opacity-40 group-hover:translate-x-1 transition-transform" />
+                    <ChevronRight size={10} className={`opacity-40 group-hover:translate-x-1 transition-transform ${language === 'ar' ? 'rotate-180 group-hover:-translate-x-1' : ''}`} />
                   </span>
                   <span className="text-[8px] text-[#5D4E45] font-bold leading-tight line-clamp-2 group-hover:text-[#8C7A70]">{lens.desc}</span>
                 </button>
@@ -341,7 +343,7 @@ export const ShotGenerator: React.FC<ShotGeneratorProps> = ({ project, globalCha
         <div className="flex justify-between items-center px-4">
           <div>
             <h3 className="text-2xl font-black text-[#FDF0C9] italic uppercase tracking-tighter flex items-center gap-3">
-              <Film className="text-[#C6934B]" /> Timeline
+              <Film className="text-[#C6934B]" /> {t.timeline}
             </h3>
             <p className="text-[9px] font-bold text-[#5D4E45] uppercase tracking-widest mt-1">Sequence management & continuity</p>
           </div>
@@ -366,7 +368,7 @@ export const ShotGenerator: React.FC<ShotGeneratorProps> = ({ project, globalCha
         {isStudioBusy && !activeGeneratingShotId && (
           <div className="mx-4 flex items-center gap-3 p-4 bg-[#C6934B]/5 border border-[#C6934B]/20 rounded-2xl text-[#C6934B]">
             <AlertCircle size={18} />
-            <span className="text-[10px] font-black uppercase tracking-widest">Studio is busy processing sequential frames.</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">{t.processing} Sequential Frames.</span>
           </div>
         )}
         
@@ -458,7 +460,7 @@ export const ShotGenerator: React.FC<ShotGeneratorProps> = ({ project, globalCha
           
           {project.shots.length > 0 && (
             <button onClick={onNavigateToExport} className="w-full py-10 border-2 border-dashed border-[#3E2F28] rounded-[4rem] text-[#5D4E45] font-black uppercase text-xs tracking-[0.6em] hover:bg-white/5 hover:border-[#C6934B]/40 hover:text-[#C6934B] transition-all flex items-center justify-center gap-4 shadow-xl">
-              <CheckCircle2 size={24} /> Verify & Export Pack
+              <CheckCircle2 size={24} /> {t.export} Pack
             </button>
           )}
         </div>

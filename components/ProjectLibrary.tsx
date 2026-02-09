@@ -1,11 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
-import { Project, Character, Shot } from '../types';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Project, Character, Shot, Language, translations } from '../types';
 import { Plus, Film, Trash2, ArrowRight, X, Sparkles, Loader2, Wand2, RefreshCw, CheckCircle2, Flame, AlertCircle, Users, FilmIcon, Clapperboard, Layers, ChevronRight, FileText, Zap, Search, Fingerprint, Database, Cpu } from 'lucide-react';
 import { GoogleGenAI, Type } from "@google/genai";
 import { SAMPLE_PROJECT_ID } from '../App';
 
 interface ProjectLibraryProps {
+  language: Language;
   projects: Project[];
   onCreateProject: (title: string) => void;
   onSelectProject: (projectId: string) => void;
@@ -67,7 +68,7 @@ const extractJson = (text: string) => {
 };
 
 export const ProjectLibrary: React.FC<ProjectLibraryProps> = ({ 
-  projects, onCreateProject, onSelectProject, onDeleteProject, onAddSample, onApiError, setProjects 
+  language, projects, onCreateProject, onSelectProject, onDeleteProject, onAddSample, onApiError, setProjects 
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -75,6 +76,8 @@ export const ProjectLibrary: React.FC<ProjectLibraryProps> = ({
   const [magicStage, setMagicStage] = useState<MagicStage>('setup');
   const [activeMode, setActiveMode] = useState<MagicMode | null>(null);
   
+  const t = useMemo(() => translations[language], [language]);
+
   const [magicContext, setMagicContext] = useState({ 
     year: '', 
     location: '', 
@@ -303,19 +306,19 @@ export const ProjectLibrary: React.FC<ProjectLibraryProps> = ({
     <div className="p-8 md:p-12 max-w-7xl mx-auto space-y-12">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8">
         <div>
-          <h2 className="text-4xl font-black text-[#FDF0C9] tracking-tighter uppercase italic leading-none">Mooovie Gallery</h2>
+          <h2 className="text-4xl font-black text-[#FDF0C9] tracking-tighter uppercase italic leading-none">{t.gallery}</h2>
           <p className="text-[#8C7A70] font-medium tracking-tight mt-2 opacity-60">Manage your production library.</p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <button onClick={onAddSample} className="bg-white/5 text-[#8C7A70] px-6 py-4 rounded-2xl font-black border border-white/10 text-[10px] tracking-widest uppercase hover:text-white transition-all"><RefreshCw size={14} className="inline mr-2" /> Restore Sample</button>
-          <button onClick={handleOpenMagic} className="bg-[#C6934B]/10 text-[#C6934B] px-6 py-4 rounded-2xl font-black border border-[#C6934B]/30 text-[10px] tracking-widest uppercase hover:bg-[#C6934B]/20 transition-all"><Sparkles size={16} className="inline mr-2" /> Magic Director</button>
+          <button onClick={onAddSample} className="bg-white/5 text-[#8C7A70] px-6 py-4 rounded-2xl font-black border border-white/10 text-[10px] tracking-widest uppercase hover:text-white transition-all"><RefreshCw size={14} className={`inline mr-2 ${language === 'ar' ? 'ml-2 mr-0' : ''}`} /> {t.restore_sample}</button>
+          <button onClick={handleOpenMagic} className="bg-[#C6934B]/10 text-[#C6934B] px-6 py-4 rounded-2xl font-black border border-[#C6934B]/30 text-[10px] tracking-widest uppercase hover:bg-[#C6934B]/20 transition-all"><Sparkles size={16} className={`inline mr-2 ${language === 'ar' ? 'ml-2 mr-0' : ''}`} /> {t.magic_director}</button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <button onClick={() => setIsModalOpen(true)} className="h-full min-h-[420px] border-2 border-dashed border-[#3E2F28] rounded-[2.5rem] flex flex-col items-center justify-center gap-6 hover:bg-white/5 transition-all text-[#5D4E45] font-black uppercase text-xs tracking-[0.4em] hover:border-[#C6934B]/40 hover:text-[#C6934B] group bg-[#0A0806]/40">
           <div className="p-6 rounded-full border-2 border-dashed border-current group-hover:scale-110 transition-transform"><Plus size={48} /></div>
-          Action! New Mooovie
+          {t.new_mooovie}
         </button>
 
         {projects.map((project) => (
@@ -356,7 +359,7 @@ export const ProjectLibrary: React.FC<ProjectLibraryProps> = ({
               </p>
               <div className="mt-auto flex gap-3">
                 <button onClick={() => onSelectProject(project.id)} className="flex-grow bg-[#C6934B] text-[#15100E] py-4 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-[#FDF0C9] transition-all active:scale-95 shadow-lg shadow-[#C6934B]/10">
-                  Enter Studio <ArrowRight size={18} />
+                  {t.enter_studio} <ArrowRight size={18} className={language === 'ar' ? 'rotate-180' : ''} />
                 </button>
                 <button onClick={(e) => { e.stopPropagation(); setDeletingProjectId(project.id); }} className="p-4 text-[#5D4E45] hover:text-red-500 border border-[#3E2F28] rounded-2xl transition-all"><Trash2 size={20} /></button>
               </div>
@@ -366,12 +369,12 @@ export const ProjectLibrary: React.FC<ProjectLibraryProps> = ({
       </div>
 
       {isMagicDirectorOpen && (
-        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-6" dir={language === 'ar' ? 'rtl' : 'ltr'}>
           <div className="bg-[#100C0A] border border-[#C6934B]/20 w-full max-w-2xl p-10 rounded-[3.5rem] relative shadow-2xl overflow-hidden animate-in zoom-in-95">
-            <button onClick={() => setIsMagicDirectorOpen(false)} className="absolute top-8 right-8 text-[#5D4E45] hover:text-[#FDF0C9]"><X size={28} /></button>
+            <button onClick={() => setIsMagicDirectorOpen(false)} className={`absolute top-8 ${language === 'ar' ? 'left-8' : 'right-8'} text-[#5D4E45] hover:text-[#FDF0C9]`}><X size={28} /></button>
             <div className="flex items-center gap-4 mb-8 border-b border-[#3E2F28] pb-4">
               <Sparkles className="text-[#C6934B]" size={32} /> 
-              <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Magic Director</h2>
+              <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">{t.magic_director}</h2>
             </div>
 
             {magicStage === 'setup' && (
@@ -389,8 +392,8 @@ export const ProjectLibrary: React.FC<ProjectLibraryProps> = ({
                   <div className="space-y-2"><label className="text-[10px] font-black text-[#5D4E45] uppercase tracking-widest">Location</label><input value={magicContext.location} onChange={e => setMagicContext({...magicContext, location: e.target.value})} placeholder="e.g. Zurich" className="w-full bg-[#15100E] border border-[#3E2F28] p-4 rounded-xl text-white outline-none focus:border-[#C6934B] font-bold" /></div>
                   <div className="space-y-2"><label className="text-[10px] font-black text-[#5D4E45] uppercase tracking-widest">Genre</label><input value={magicContext.genre} onChange={e => setMagicContext({...magicContext, genre: e.target.value})} placeholder="e.g. Sci-Fi Longing" className="w-full bg-[#15100E] border border-[#3E2F28] p-4 rounded-xl text-white outline-none focus:border-[#C6934B] font-bold" /></div>
                 </div>
-                <div className="pt-4 border-t border-[#3E2F28]/30"><div className="space-y-3"><label className="flex items-center gap-2 text-[10px] font-black text-[#C6934B] uppercase tracking-[0.2em]"><Users size={14} /> Cast Size (Max 4)</label><div className="flex items-center gap-6"><input type="range" min="1" max="4" value={magicContext.numCharacters} onChange={e => setMagicContext({...magicContext, numCharacters: parseInt(e.target.value)})} className="flex-grow accent-[#C6934B]" /><span className="w-10 text-center font-black text-2xl text-[#FDF0C9]">{magicContext.numCharacters}</span></div></div></div>
-                <button onClick={generateCasting} disabled={!isSetupValid || isProducing} className="w-full bg-[#C6934B] text-[#15100E] py-6 rounded-2xl font-black text-xl flex items-center justify-center gap-4 active:scale-95 hover:bg-[#FDF0C9] shadow-2xl shadow-[#C6934B]/20 disabled:opacity-30 group"><span>Pitch & Assemble Cast</span><ChevronRight size={24} className="group-hover:translate-x-1 transition-transform" /></button>
+                <div className="pt-4 border-t border-[#3E2F28]/30"><div className="space-y-3"><label className="flex items-center gap-2 text-[10px] font-black text-[#C6934B] uppercase tracking-[0.2em]"><Users size={14} /> {t.cast} Size (Max 4)</label><div className="flex items-center gap-6"><input type="range" min="1" max="4" value={magicContext.numCharacters} onChange={e => setMagicContext({...magicContext, numCharacters: parseInt(e.target.value)})} className="flex-grow accent-[#C6934B]" /><span className="w-10 text-center font-black text-2xl text-[#FDF0C9]">{magicContext.numCharacters}</span></div></div></div>
+                <button onClick={generateCasting} disabled={!isSetupValid || isProducing} className="w-full bg-[#C6934B] text-[#15100E] py-6 rounded-2xl font-black text-xl flex items-center justify-center gap-4 active:scale-95 hover:bg-[#FDF0C9] shadow-2xl shadow-[#C6934B]/20 disabled:opacity-30 group"><span>Pitch & Assemble Cast</span><ChevronRight size={24} className={`group-hover:translate-x-1 transition-transform ${language === 'ar' ? 'rotate-180 group-hover:-translate-x-1' : ''}`} /></button>
               </div>
             )}
 
@@ -440,7 +443,7 @@ export const ProjectLibrary: React.FC<ProjectLibraryProps> = ({
                   <div className="space-y-2"><label className="text-[10px] font-black text-[#C6934B] uppercase tracking-[0.4em]">Series Title</label><input value={conceptData.title} onChange={e => setConceptData({...conceptData, title: e.target.value})} className="w-full bg-[#15100E] border border-[#3E2F28] p-4 rounded-xl text-3xl font-black text-[#FDF0C9] outline-none italic focus:border-[#C6934B]" /></div>
                   <div className="space-y-2"><label className="text-[10px] font-black text-[#C6934B] uppercase tracking-[0.4em]">Visual DNA</label><textarea value={conceptData.vibe} onChange={e => setConceptData({...conceptData, vibe: e.target.value})} className="w-full bg-[#15100E] border border-[#3E2F28] p-4 rounded-xl text-xs font-bold text-[#8C7A70] h-[72px] resize-none outline-none leading-relaxed focus:border-[#C6934B]" /></div>
                 </div>
-                <div className="space-y-4"><span className="text-[10px] font-black text-[#C6934B] uppercase tracking-widest flex items-center gap-2"><Users size={16} /> Review Cast</span><div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[220px] overflow-y-auto pr-2 custom-scrollbar p-1">
+                <div className="space-y-4"><span className="text-[10px] font-black text-[#C6934B] uppercase tracking-widest flex items-center gap-2"><Users size={16} /> Review {t.cast}</span><div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[220px] overflow-y-auto pr-2 custom-scrollbar p-1">
                      {conceptData.cast.map((c: any, i: number) => (
                        <div key={i} className="p-4 bg-black/40 border border-[#3E2F28] rounded-2xl group hover:border-[#C6934B]/30 transition-all flex gap-3 items-start"><div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center font-black text-[#C6934B] text-xs shrink-0">{i + 1}</div><div className="flex-grow space-y-1"><input value={c.name} onChange={e => { const newCast = [...conceptData.cast]; newCast[i].name = e.target.value; setConceptData({...conceptData, cast: newCast}); }} className="w-full bg-transparent text-sm font-black text-[#FDF0C9] outline-none" /><textarea value={c.bio} onChange={e => { const newCast = [...conceptData.cast]; newCast[i].bio = e.target.value; setConceptData({...conceptData, cast: newCast}); }} className="w-full bg-transparent text-[10px] text-[#8C7A70] leading-relaxed h-12 resize-none outline-none" /></div></div>
                      ))}
@@ -460,13 +463,13 @@ export const ProjectLibrary: React.FC<ProjectLibraryProps> = ({
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6" dir={language === 'ar' ? 'rtl' : 'ltr'}>
            <div className="bg-[#100C0A] border border-[#C6934B]/30 w-full max-w-lg p-10 rounded-[3.5rem] relative animate-in zoom-in-95 shadow-2xl">
-             <button onClick={() => setIsModalOpen(false)} className="absolute top-8 right-8 text-[#5D4E45] hover:text-[#C6934B]"><X size={28} /></button>
-             <h2 className="text-4xl font-black text-[#FDF0C9] mb-8 italic uppercase tracking-tighter border-b border-[#3E2F28] pb-4">New Mooovie Draft</h2>
+             <button onClick={() => setIsModalOpen(false)} className={`absolute top-8 ${language === 'ar' ? 'left-8' : 'right-8'} text-[#5D4E45] hover:text-[#C6934B]`}><X size={28} /></button>
+             <h2 className="text-4xl font-black text-[#FDF0C9] mb-8 italic uppercase tracking-tighter border-b border-[#3E2F28] pb-4">{t.new_mooovie}</h2>
              <form onSubmit={(e) => { e.preventDefault(); onCreateProject(newTitle); setIsModalOpen(false); }} className="space-y-8">
-               <div className="space-y-2"><label className="text-[10px] font-black text-[#5D4E45] uppercase tracking-widest ml-1">Working Title</label><input autoFocus type="text" value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Untitled Masterpiece" className="w-full bg-[#15100E] border border-[#3E2F28] text-[#FDF0C9] text-3xl font-black px-6 py-5 rounded-[2rem] outline-none focus:ring-2 focus:ring-[#C6934B] italic" /></div>
-               <button type="submit" disabled={!newTitle.trim()} className="w-full bg-[#C6934B] text-[#15100E] py-5 rounded-[2rem] font-black text-xl uppercase tracking-widest active:scale-95 hover:bg-[#FDF0C9] shadow-xl shadow-[#C6934B]/10">Action!</button>
+               <div className="space-y-2"><label className="text-[10px] font-black text-[#5D4E45] uppercase tracking-widest ml-1">{t.working_title}</label><input autoFocus type="text" value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Untitled Masterpiece" className="w-full bg-[#15100E] border border-[#3E2F28] text-[#FDF0C9] text-3xl font-black px-6 py-5 rounded-[2rem] outline-none focus:ring-2 focus:ring-[#C6934B] italic" /></div>
+               <button type="submit" disabled={!newTitle.trim()} className="w-full bg-[#C6934B] text-[#15100E] py-5 rounded-[2rem] font-black text-xl uppercase tracking-widest active:scale-95 hover:bg-[#FDF0C9] shadow-xl shadow-[#C6934B]/10">{t.action_btn}</button>
              </form>
            </div>
         </div>

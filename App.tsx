@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Character, Project, Shot } from './types';
+import { Character, Project, Shot, Language, translations } from './types';
 import { CharacterManager } from './components/CharacterManager';
 import { ShotGenerator } from './components/ShotGenerator';
 import { ExportView } from './components/ExportView';
 import { ProjectLibrary } from './components/ProjectLibrary';
 import { CinematicBackground } from './components/CinematicBackground';
 import { ErrorModal } from './components/ErrorModal';
-import { ArrowLeft, Users, Clapperboard, Film, LayoutGrid, Key, ChevronRight, Loader2, Cpu, Github } from 'lucide-react';
+import { ArrowLeft, Users, Clapperboard, Film, LayoutGrid, Key, ChevronRight, Loader2, Cpu, Github, Languages } from 'lucide-react';
 
 export const SAMPLE_PROJECT_ID = 'proj-sample-mimelung-final-v3';
 
@@ -143,6 +143,13 @@ const ArtisticLogo = () => (
 
 export const App: React.FC = () => {
   const [hasKey, setHasKey] = useState<boolean | null>(null);
+  const [language, setLanguage] = useState<Language>(() => {
+    const saved = localStorage.getItem('veo_mooovie_lang') as Language;
+    return (['en', 'es', 'ja', 'vi', 'ko', 'ar'].includes(saved) ? saved : 'en') as Language;
+  });
+
+  const t = useMemo(() => translations[language], [language]);
+
   const [projects, setProjects] = useState<Project[]>(() => {
     try {
       const saved = localStorage.getItem('veo_mooovie_projects');
@@ -162,6 +169,10 @@ export const App: React.FC = () => {
   const [isStudioBusy, setIsStudioBusy] = useState(false);
 
   useEffect(() => {
+    localStorage.setItem('veo_mooovie_lang', language);
+  }, [language]);
+
+  useEffect(() => {
     const checkKey = async () => {
       if (window.aistudio) {
         try {
@@ -177,8 +188,6 @@ export const App: React.FC = () => {
     checkKey();
   }, []);
 
-  // TIERED STORAGE FIX: Strip large binaries before saving to localStorage (disk).
-  // This prevents the 5MB browser quota from crashing the app (the "Dark Screen" bug).
   useEffect(() => {
     try {
       const projectsToPersist = projects.map(p => ({
@@ -265,7 +274,7 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row text-[#FDF0C9] relative overflow-hidden font-inter select-none">
+    <div className={`min-h-screen flex flex-col md:flex-row text-[#FDF0C9] relative overflow-hidden font-inter select-none ${language === 'ar' ? 'font-arabic' : ''}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <CinematicBackground />
       {globalError && (
         <ErrorModal 
@@ -283,19 +292,36 @@ export const App: React.FC = () => {
         <div className="p-4 space-y-2 flex-grow">
           <button onClick={() => setActiveProjectId(null)} className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all ${!isProjectOpen ? 'bg-[#C6934B] text-[#15100E] font-bold' : 'text-[#8C7A70] hover:text-[#FDF0C9]'}`}>
             <LayoutGrid size={24} />
-            <span className="font-black uppercase text-xs tracking-widest hidden lg:block">Gallery</span>
+            <span className="font-black uppercase text-xs tracking-widest hidden lg:block">{t.gallery}</span>
           </button>
           {isProjectOpen && (
             <>
               <div className="h-px bg-[#3E2F28]/20 my-4" />
-              <NavButton active={activeTab === 'characters'} onClick={() => setActiveTab('characters')} icon={<Users size={22} />} label="Cast" />
-              <NavButton active={activeTab === 'shots'} onClick={() => setActiveTab('shots')} icon={<Clapperboard size={22} />} label="Studio" />
-              <NavButton active={activeTab === 'export'} onClick={() => setActiveTab('export')} icon={<Film size={22} />} label="Export" />
+              <NavButton active={activeTab === 'characters'} onClick={() => setActiveTab('characters')} icon={<Users size={22} />} label={t.cast} />
+              <NavButton active={activeTab === 'shots'} onClick={() => setActiveTab('shots')} icon={<Clapperboard size={22} />} label={t.studio} />
+              <NavButton active={activeTab === 'export'} onClick={() => setActiveTab('export')} icon={<Film size={22} />} label={t.export} />
             </>
           )}
         </div>
         
         <div className="p-4 border-t border-[#3E2F28]/30 bg-white/5 space-y-4">
+          {/* Language Switcher */}
+          <div className="flex items-center gap-3 px-1 group">
+            <Languages size={18} className="text-[#8C7A70] group-hover:text-[#C6934B] transition-colors" />
+            <select 
+              value={language} 
+              onChange={(e) => setLanguage(e.target.value as Language)}
+              className="bg-transparent text-[10px] font-black uppercase tracking-widest text-[#8C7A70] hover:text-[#C6934B] outline-none cursor-pointer hidden lg:block"
+            >
+              <option value="en" className="bg-[#15100E]">English</option>
+              <option value="es" className="bg-[#15100E]">Español</option>
+              <option value="ja" className="bg-[#15100E]">日本語</option>
+              <option value="vi" className="bg-[#15100E]">Tiếng Việt</option>
+              <option value="ko" className="bg-[#15100E]">한국어</option>
+              <option value="ar" className="bg-[#15100E]">العربية</option>
+            </select>
+          </div>
+
           <a 
             href="https://github.com/jbrick2070/Veo-Moovie-Maker" 
             target="_blank" 
@@ -303,18 +329,18 @@ export const App: React.FC = () => {
             className="flex items-center gap-3 text-[#8C7A70] hover:text-[#C6934B] transition-colors group px-1"
           >
             <Github size={18} />
-            <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block">Open Source</span>
+            <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block">{t.open_source}</span>
           </a>
 
           {isStudioBusy ? (
             <div className="flex items-center gap-3 animate-pulse">
               <Loader2 className="animate-spin text-[#C6934B]" size={16} />
-              <span className="text-[9px] font-black uppercase text-[#C6934B] tracking-widest">Processing...</span>
+              <span className="text-[9px] font-black uppercase text-[#C6934B] tracking-widest">{t.processing}</span>
             </div>
           ) : (
             <div className="flex items-center gap-3 opacity-40">
               <Cpu size={16} className="text-[#8C7A70]" />
-              <span className="text-[9px] font-black uppercase text-[#8C7A70] tracking-widest">Memory Stable</span>
+              <span className="text-[9px] font-black uppercase text-[#8C7A70] tracking-widest">{t.memory_stable}</span>
             </div>
           )}
         </div>
@@ -324,18 +350,19 @@ export const App: React.FC = () => {
         <header className="h-20 border-b border-[#3E2F28]/20 flex items-center justify-between px-10 bg-[#100C0A]/40 backdrop-blur-md">
           {isProjectOpen ? (
             <div className="flex items-center gap-4">
-              <button onClick={() => setActiveProjectId(null)} className="text-[#5D4E45] hover:text-[#C6934B] transition-colors"><ArrowLeft size={20} /></button>
-              <ChevronRight size={16} className="text-[#3E2F28]" />
+              <button onClick={() => setActiveProjectId(null)} className={`text-[#5D4E45] hover:text-[#C6934B] transition-colors ${language === 'ar' ? 'rotate-180' : ''}`}><ArrowLeft size={20} /></button>
+              <ChevronRight size={16} className={`text-[#3E2F28] ${language === 'ar' ? 'rotate-180' : ''}`} />
               <h1 className="text-xl font-black italic text-[#FDF0C9] uppercase">{activeProject.title}</h1>
             </div>
           ) : (
-            <h1 className="text-[#C6934B] font-black text-2xl uppercase italic">Studio Archive</h1>
+            <h1 className="text-[#C6934B] font-black text-2xl uppercase italic">{t.archive}</h1>
           )}
         </header>
 
         <div className="flex-grow overflow-y-auto custom-scrollbar">
           {!isProjectOpen ? (
             <ProjectLibrary 
+              language={language}
               projects={projects} 
               onCreateProject={handleCreateProject} 
               onSelectProject={handleSelectProject} 
@@ -348,6 +375,7 @@ export const App: React.FC = () => {
             <div className="p-8 max-w-7xl mx-auto">
               {activeTab === 'characters' && (
                 <CharacterManager 
+                  language={language}
                   characters={activeProject.characters} 
                   isStudioBusy={isStudioBusy}
                   setIsStudioBusy={setIsStudioBusy}
@@ -362,6 +390,7 @@ export const App: React.FC = () => {
               )}
               {activeTab === 'shots' && (
                 <ShotGenerator 
+                  language={language}
                   project={activeProject} 
                   isStudioBusy={isStudioBusy}
                   setIsStudioBusy={setIsStudioBusy}
@@ -371,7 +400,14 @@ export const App: React.FC = () => {
                   onApiError={(err) => handleApiError(err, "Studio Error")} 
                 />
               )}
-              {activeTab === 'export' && <ExportView project={activeProject} globalCharacters={activeProject.characters} onApiError={(err) => handleApiError(err, "Export Error")} />}
+              {activeTab === 'export' && (
+                <ExportView 
+                  language={language}
+                  project={activeProject} 
+                  globalCharacters={activeProject.characters} 
+                  onApiError={(err) => handleApiError(err, "Export Error")} 
+                />
+              )}
             </div>
           )}
         </div>

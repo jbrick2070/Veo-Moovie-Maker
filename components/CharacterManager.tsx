@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
-import { Character } from '../types';
+import React, { useState, useMemo } from 'react';
+import { Character, Language, translations } from '../types';
 import { UserPlus, Trash2, Edit2, Check, Sparkles, Loader2, Fingerprint, RefreshCw, Upload, AlertCircle } from 'lucide-react';
 import { GoogleGenAI, Type } from "@google/genai";
 
 interface CharacterManagerProps {
+  language: Language;
   characters: Character[];
   isStudioBusy: boolean;
   setIsStudioBusy: (busy: boolean) => void;
@@ -14,13 +15,15 @@ interface CharacterManagerProps {
 
 const COLORS = ['bg-blue-500', 'bg-purple-500', 'bg-orange-500', 'bg-emerald-500', 'bg-rose-500'];
 
-export const CharacterManager: React.FC<CharacterManagerProps> = ({ characters, isStudioBusy, setIsStudioBusy, setCharacters, onApiError }) => {
+export const CharacterManager: React.FC<CharacterManagerProps> = ({ language, characters, isStudioBusy, setIsStudioBusy, setCharacters, onApiError }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [localGeneratingId, setLocalGeneratingId] = useState<string | null>(null);
+
+  const t = useMemo(() => translations[language], [language]);
 
   const handleAIGenerate = async () => {
     setIsGenerating(true);
@@ -124,7 +127,7 @@ export const CharacterManager: React.FC<CharacterManagerProps> = ({ characters, 
       <div className="flex justify-between items-end border-b border-[#3E2F28] pb-6">
         <div>
           <h2 className="text-3xl font-black text-[#FDF0C9] italic uppercase tracking-tighter flex items-center gap-3">
-            <Fingerprint className="text-[#C6934B]" size={32} /> Cast Bank
+            <Fingerprint className="text-[#C6934B]" size={32} /> {t.cast_bank}
           </h2>
           <p className="text-[#8C7A70] text-xs font-bold uppercase tracking-widest mt-2">Ground your series with consistent visual anchors.</p>
         </div>
@@ -133,7 +136,7 @@ export const CharacterManager: React.FC<CharacterManagerProps> = ({ characters, 
             onClick={() => setIsFormOpen(true)} 
             className="bg-[#C6934B] text-[#15100E] px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-[#FDF0C9] transition-all flex items-center gap-2 shadow-xl shadow-[#C6934B]/10"
           >
-            <UserPlus size={18} /> New Cast Member
+            <UserPlus size={18} /> New {t.cast} Member
           </button>
         )}
       </div>
@@ -162,7 +165,7 @@ export const CharacterManager: React.FC<CharacterManagerProps> = ({ characters, 
       {isStudioBusy && !localGeneratingId && (
         <div className="flex items-center gap-3 p-4 bg-[#C6934B]/5 border border-[#C6934B]/20 rounded-2xl text-[#C6934B] animate-in slide-in-from-top-2">
           <AlertCircle size={18} />
-          <span className="text-[10px] font-black uppercase tracking-widest">Studio is busy. Please wait for completion.</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">{t.processing} Please wait for completion.</span>
         </div>
       )}
 

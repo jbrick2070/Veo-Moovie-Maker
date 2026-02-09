@@ -1,11 +1,12 @@
 
 import React, { useState, useMemo } from 'react';
 import { GoogleGenAI, Type } from "@google/genai";
-import { Project, Character, Shot } from '../types';
+import { Project, Character, Shot, Language, translations } from '../types';
 import { FileText, Sparkles, Loader2, Download, Star, ExternalLink, Layout, Link as LinkIcon, Target, PenTool, FileArchive } from 'lucide-react';
 import JSZip from 'jszip';
 
 interface ExportViewProps {
+  language: Language;
   project: Project;
   globalCharacters: Character[];
   onApiError: (error: any) => void;
@@ -13,13 +14,15 @@ interface ExportViewProps {
 
 type OptimizationProfile = 'faithful' | 'cinematic' | 'redraft';
 
-export const ExportView: React.FC<ExportViewProps> = ({ project, globalCharacters, onApiError }) => {
+export const ExportView: React.FC<ExportViewProps> = ({ language, project, globalCharacters, onApiError }) => {
   const [copied, setCopied] = useState(false);
   const [isOptimized, setIsOptimized] = useState(false);
   const [optimizedPrompts, setOptimizedPrompts] = useState<string[] | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isBatchDownloading, setIsBatchDownloading] = useState(false);
   const [profile, setProfile] = useState<OptimizationProfile>('faithful');
+
+  const t = useMemo(() => translations[language], [language]);
 
   const handleRunAIOptimization = async () => {
     setIsGenerating(true);
@@ -174,9 +177,9 @@ export const ExportView: React.FC<ExportViewProps> = ({ project, globalCharacter
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-[#3E2F28]/30 pb-6">
         <div>
-          <h2 className="text-4xl font-black text-[#FDF0C9] italic uppercase leading-none tracking-tighter">Export Studio</h2>
+          <h2 className="text-4xl font-black text-[#FDF0C9] italic uppercase leading-none tracking-tighter">{t.export_studio}</h2>
           <p className="text-[10px] text-[#C6934B] font-black uppercase tracking-[0.4em] mt-2 flex items-center gap-2">
-            <Layout size={12} /> Production Assembly
+            <Layout size={12} /> {t.production_assembly}
           </p>
         </div>
         
@@ -216,7 +219,7 @@ export const ExportView: React.FC<ExportViewProps> = ({ project, globalCharacter
             {isBatchDownloading ? <Loader2 className="animate-spin" size={24} /> : <FileArchive size={24} />}
           </div>
           <div className="text-left">
-            <span className="block text-sm font-black uppercase tracking-[0.2em] italic">1. Export Image Pack</span>
+            <span className="block text-sm font-black uppercase tracking-[0.2em] italic">1. {t.export_images}</span>
             <span className="block text-[9px] font-bold uppercase tracking-[0.1em] mt-0.5 opacity-80 italic">Continuity ZIP Assembly</span>
           </div>
         </button>
@@ -232,7 +235,7 @@ export const ExportView: React.FC<ExportViewProps> = ({ project, globalCharacter
             {isGenerating ? <Loader2 className="animate-spin" size={24} /> : <Star size={24} />}
           </div>
           <div className="text-left">
-            <span className="block text-sm font-black uppercase tracking-[0.2em] italic">2. Assemble Master Script</span>
+            <span className="block text-sm font-black uppercase tracking-[0.2em] italic">2. {t.assemble_script}</span>
             <span className="block text-[9px] font-bold uppercase tracking-[0.1em] mt-0.5 opacity-80 italic">Veo 3 Motion Instruction Pack</span>
           </div>
         </button>
